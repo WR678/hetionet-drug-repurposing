@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Hetionet drug repurposing"
+abstract: "Lightweight, CPU-only drug repurposing on the Hetionet knowledge graph with a small R-GCN and a simple baseline"
+type: software
+authors:
+  - given-names: "Rui"
+    family-names: "Wang"
+    email: "Wang.Rui@mbzuai.ac.ae"
+    orcid: "https://orcid.org/0009-0008-5273-0060"
+repository-code: "https://github.com/WR678/hetionet-drug-repurposing"
+license: MIT
+version: 0.1.0
+date-released: "2026-10-26"
