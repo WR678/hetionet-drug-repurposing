@@ -58,11 +58,26 @@ Each folder has its own `README.md` with more detail.
 
 ## Data
 
-Hetionet v1.0, edge list `hetionet-v1.0-edges.sif.gz` (12.4 MB), from
-<https://github.com/hetio/hetionet> (archived on Zenodo,
-<https://doi.org/10.5281/zenodo.268568>). Original Hetionet content is CC0;
-integrated sources keep their own licenses. The download script, sources and
-checksums will be added in `metadata/` (lesson 03).
+Hetionet v1.0 (Himmelstein et al. 2017): the node table
+`hetionet-v1.0-nodes.tsv` (2.5 MB) and the edge list
+`hetionet-v1.0-edges.sif.gz` (12.4 MB), from
+<https://github.com/hetio/hetionet> at tag `v1.0.0` (commit `4933ca1`).
+`pixi exec python scripts/download_data.py` downloads both files into
+`data/raw/hetionet/`, checks them against the provider's Git blob IDs and
+our SHA-256 checksums, and makes them read-only. Sources, checksums, the data
+dictionary and the licenses of the integrated resources are in `metadata/`.
+
+## Data availability
+
+Hetionet v1.0 is publicly available on GitHub at
+<https://github.com/hetio/hetionet> (tag `v1.0.0`) and archived on Zenodo at
+<https://doi.org/10.5281/zenodo.268568>. Original Hetionet content is released
+under CC0; the resources it integrates keep their own licenses, listed in
+`metadata/README.md`. `scripts/download_data.py` downloads every raw file from
+the sources listed in `metadata/sources.tsv` and checks it against
+`metadata/checksums.sha256`. Derived data and results are not distributed:
+they are regenerated from the raw data by the code in this repository. Code
+and environment: <https://github.com/WR678/hetionet-drug-repurposing> (MIT).
 
 ## How to cite
 
