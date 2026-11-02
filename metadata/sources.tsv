@@ -1,0 +1,3 @@
+name	url	git_blob_sha1	dest
+hetionet_nodes	https://raw.githubusercontent.com/hetio/hetionet/4933ca17639cdcf146f91cc44e28128cbfc6fd24/hetnet/tsv/hetionet-v1.0-nodes.tsv	84e2c15dce10c3a9c80a5f81af09ed338a10aa43	data/raw/hetionet/hetionet-v1.0-nodes.tsv
+hetionet_edges	https://raw.githubusercontent.com/hetio/hetionet/4933ca17639cdcf146f91cc44e28128cbfc6fd24/hetnet/tsv/hetionet-v1.0-edges.sif.gz	81f59db48939d980265de7ecb79f33c0bdd1330b	data/raw/hetionet/hetionet-v1.0-edges.sif.gz
