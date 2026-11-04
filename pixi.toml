@@ -16,9 +16,13 @@ ipykernel = ">=7"
 pandas = ">=2"
 matplotlib = ">=3.9"
 papermill = ">=2.6"   # Quarto needs it for report parameters (-P)
+pytorch = ">=2.14.1,<3"
+pytorch_geometric = ">=2.8.1,<3"
+scikit-learn = ">=1.9.1,<2"
 
 [tasks]
-check = { cmd = "python --version && quarto --version", description = "Check that the tools work" }
+check = { cmd = "python --version && quarto --version && python -c \"import torch, torch_geometric, sklearn; print('torch', torch.__version__, '| torch_geometric', torch_geometric.__version__, '| scikit-learn', sklearn.__version__)\"", description = "Check that the tools work" }
+download = { cmd = "python scripts/download_data.py", description = "Download Hetionet and verify its checksums" }
 # `reproduce` must rebuild every result from the raw data with one command.
-# The lessons replace this placeholder with real steps.
-reproduce = { cmd = "python -c \"print('Nothing to reproduce yet: add your steps to the reproduce task in pixi.toml')\"", description = "Rebuild all results from raw data" }
+# For now it downloads the data and checks the tools; analysis steps follow.
+reproduce = [{ task = "download" }, { task = "check" }]
