@@ -37,6 +37,14 @@ pixi run reproduce    # downloads the raw data and rebuilds every result
 `pixi run reproduce` must work on a fresh clone of this repository. A GitHub
 Action (`.github/workflows/reproduce.yml`) checks that on every push.
 
+`pixi.lock` pins the environment for Linux (`linux-64`), macOS on Apple
+silicon and Intel (`osx-arm64`, `osx-64`) and Windows (`win-64`), with the CPU
+builds of PyTorch, so no GPU is needed. The project has been run only on
+`linux-64`: Ubuntu 26.04 under WSL2 and the GitHub Actions `ubuntu-latest`
+runner. At this stage `pixi run reproduce` downloads and verifies the data and
+checks that the tools load; the analysis steps will be added to it as they are
+written.
+
 ## What is where
 
 | Folder | What goes in it | Rule |
@@ -62,7 +70,7 @@ Hetionet v1.0 (Himmelstein et al. 2017): the node table
 `hetionet-v1.0-nodes.tsv` (2.5 MB) and the edge list
 `hetionet-v1.0-edges.sif.gz` (12.4 MB), from
 <https://github.com/hetio/hetionet> at tag `v1.0.0` (commit `4933ca1`).
-`pixi exec python scripts/download_data.py` downloads both files into
+`pixi run download` (the script `scripts/download_data.py`) downloads both files into
 `data/raw/hetionet/`, checks them against the provider's Git blob IDs and
 our SHA-256 checksums, and makes them read-only. Sources, checksums, the data
 dictionary and the licenses of the integrated resources are in `metadata/`.
