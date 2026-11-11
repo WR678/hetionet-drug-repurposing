@@ -1,0 +1,113 @@
+---
+title: "Drug repurposing on the Hetionet knowledge graph"
+subtitle: "The data: node types, edge types and known treatments"
+author: "Rui Wang"
+date: today
+format:
+  html:
+    embed-resources: true
+    toc: true
+    code-fold: true
+    code-tools: true
+execute:
+  warning: false
+bibliography: references.bib
+jupyter: python3
+---
+
+## Question
+
+Can a small relational graph neural network (R-GCN), trained on a laptop CPU
+in a few minutes, rank known drug–disease treatment links in Hetionet
+[@himmelstein2017] better than a simple common-neighbour baseline? This report
+describes the data. The model and the baseline will be added in later lessons.
+
+## Data
+
+```{python}
+#| label: setup
+import sys
+
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+
+from scripts.hetionet import edge_types, load_edges, load_nodes
+
+nodes = load_nodes()
+edges = load_edges()
+types = edge_types(edges)
+```
+
+Hetionet v1.0 [@hetionet_data] has `{python} f"{len(nodes):,}"` nodes of
+`{python} f"{nodes['kind'].nunique()}"` types (@tbl-nodes) and
+`{python} f"{len(edges):,}"` edges of `{python} f"{len(types)}"` types
+(@tbl-edges).
+
+```{python}
+#| label: tbl-nodes
+#| tbl-cap: "Nodes of each type."
+nodes["kind"].value_counts().rename_axis("node type").reset_index(name="nodes")
+```
+
+```{python}
+#| label: tbl-edges
+#| tbl-cap: "Edges of each type: the metaedge abbreviation, the node types it connects and the number of edges."
+types
+```
+
+## Known treatments
+
+```{python}
+#| label: ctd
+ctd = edges[edges["metaedge"] == "CtD"]
+per_compound = ctd["source"].value_counts()
+per_disease = ctd["target"].value_counts()
+n_compounds = (nodes["kind"] == "Compound").sum()
+n_diseases = (nodes["kind"] == "Disease").sum()
+```
+
+The model will predict the Compound–treats–Disease (CtD) edges. There are
+`{python} f"{len(ctd)}"` of them, linking `{python} f"{per_compound.size}"` of
+the `{python} f"{n_compounds:,}"` compounds and `{python} f"{per_disease.size}"`
+of the `{python} f"{n_diseases}"` diseases. Most of these compounds
+(`{python} f"{(per_compound == 1).sum()}"`) treat a single disease, while the
+number of known treatments per disease ranges from 1 to
+`{python} f"{per_disease.max()}"` (@fig-ctd). A model can therefore score well
+by ranking the diseases that already have many treatments, which the
+evaluation will have to take into account.
+
+```{python}
+#| label: fig-ctd
+#| fig-cap: "Known treatments (CtD edges) per compound (left) and per disease (right), for the compounds and diseases that have at least one."
+#| fig-alt: "Two histograms. Left: diseases treated per compound, from 1 to 19; about two thirds of the compounds treat one disease and the bars fall quickly after that. Right: known treatments per disease, from 1 to 68; the bars are spread over 1 to 16 treatments, with a tall bar at 1, and a sparse tail of about ten diseases between 21 and 68."
+fig, (left, right) = plt.subplots(1, 2, figsize=(8, 3.2))
+left.hist(per_compound, bins=range(1, per_compound.max() + 2), color="#2a78d6")
+left.set_xlabel("Diseases treated per compound")
+left.set_ylabel("Compounds")
+right.hist(per_disease, bins=range(1, per_disease.max() + 2), color="#eb6834")
+right.set_xlabel("Known treatments per disease")
+right.set_ylabel("Diseases")
+fig.tight_layout()
+plt.show()
+```
+
+## Software
+
+```{python}
+#| label: versions
+import sklearn
+import torch
+import torch_geometric
+
+print(f"Python {sys.version.split()[0]}, pandas {pd.__version__}, "
+      f"matplotlib {matplotlib.__version__}, PyTorch {torch.__version__}, "
+      f"PyG {torch_geometric.__version__}, scikit-learn {sklearn.__version__}")
+```
+
+The exact versions of every package are in `pixi.lock`.
+
+## References
+
+::: {#refs}
+:::
