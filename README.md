@@ -47,6 +47,15 @@ checks that the tools load, runs the exploration notebook
 renders the data report (`reports/hetionet-report.html`). The model and the
 baseline will be added to it as they are written.
 
+Without Pixi, Conda or Mamba users can build the environment from
+`envs/environment.yml`, which carries the version ranges of `pixi.toml`, or
+from the file for their platform in `envs/explicit/`, which lists the exact
+packages of `pixi.lock` (for example
+`conda create -p ./env --file envs/explicit/default_linux-64_conda_spec.txt`).
+Both are exported with `pixi workspace export`; the Linux file was tested with
+micromamba. The steps of the analysis, including `reproduce`, are Pixi tasks in
+`pixi.toml`, so Conda users run their commands by hand.
+
 ## What is where
 
 | Folder | What goes in it | Rule |
