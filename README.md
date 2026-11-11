@@ -41,9 +41,11 @@ Action (`.github/workflows/reproduce.yml`) checks that on every push.
 silicon and Intel (`osx-arm64`, `osx-64`) and Windows (`win-64`), with the CPU
 builds of PyTorch, so no GPU is needed. The project has been run only on
 `linux-64`: Ubuntu 26.04 under WSL2 and the GitHub Actions `ubuntu-latest`
-runner. At this stage `pixi run reproduce` downloads and verifies the data and
-checks that the tools load; the analysis steps will be added to it as they are
-written.
+runner. At this stage `pixi run reproduce` downloads and verifies the data,
+checks that the tools load, runs the exploration notebook
+(`notebooks/explore-hetionet.ipynb`, saved as HTML in `results/notebooks/`) and
+renders the data report (`reports/hetionet-report.html`). The model and the
+baseline will be added to it as they are written.
 
 ## What is where
 
