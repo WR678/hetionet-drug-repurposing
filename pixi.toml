@@ -23,6 +23,9 @@ scikit-learn = ">=1.9.1,<2"
 [tasks]
 check = { cmd = "python --version && quarto --version && python -c \"import torch, torch_geometric, sklearn; print('torch', torch.__version__, '| torch_geometric', torch_geometric.__version__, '| scikit-learn', sklearn.__version__)\"", description = "Check that the tools work" }
 download = { cmd = "python scripts/download_data.py", description = "Download Hetionet and verify its checksums" }
+explore = { cmd = "jupyter nbconvert --execute --to html --output-dir results/notebooks notebooks/explore-hetionet.ipynb", depends-on = ["download"], description = "Run the exploration notebook on a fresh kernel (HTML in results/notebooks/)" }
+report = { cmd = "quarto render reports/hetionet-report.qmd", depends-on = ["download"], description = "Render the Quarto report" }
 # `reproduce` must rebuild every result from the raw data with one command.
-# For now it downloads the data and checks the tools; analysis steps follow.
-reproduce = [{ task = "download" }, { task = "check" }]
+# For now it checks the tools, runs the notebook and renders the data report;
+# the model and the baseline follow.
+reproduce = [{ task = "check" }, { task = "explore" }, { task = "report" }]
