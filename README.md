@@ -56,6 +56,10 @@ Both are exported with `pixi workspace export`; the Linux file was tested with
 micromamba. The steps of the analysis, including `reproduce`, are Pixi tasks in
 `pixi.toml`, so Conda users run their commands by hand.
 
+## Container
+
+The environment can also be used as a Docker image built from `pixi.lock` (Linux, amd64): `docker build --platform linux/amd64 -f containers/Dockerfile --build-arg ENV_NAME=default -t hetionet-drug-repurposing:0.1.0 .` The steps of `reproduce` ran in it with the project mounted at `/work`, on 2026-11-11, image ID `sha256:1ac5a544dc5f5d5c6fc458c966d5abb204fe7da8ce60ac1e3d19bd113b3db89e`.
+
 ## What is where
 
 | Folder | What goes in it | Rule |
