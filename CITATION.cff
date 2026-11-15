@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
-title: "Hetionet drug repurposing"
-abstract: "Lightweight, CPU-only drug repurposing on the Hetionet knowledge graph with a small R-GCN and a simple baseline"
+title: "Drug repurposing on the Hetionet knowledge graph with relational graph convolutional networks"
+abstract: "Prediction of drug–disease treatment relationships in the Hetionet biomedical knowledge graph using a relational graph convolutional network (R-GCN), evaluated on held-out links against a common-neighbour baseline."
 type: software
 authors:
   - given-names: "Rui"

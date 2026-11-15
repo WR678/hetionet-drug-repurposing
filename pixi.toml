@@ -2,7 +2,7 @@
 # Pixi records the exact versions it installed in pixi.lock (commit both).
 [workspace]
 name = "hetionet-drug-repurposing"
-description = "Lightweight, CPU-only drug repurposing on the Hetionet knowledge graph with a small R-GCN and a simple baseline"
+description = "Prediction of drug–disease treatment relationships in the Hetionet biomedical knowledge graph using a relational graph convolutional network (R-GCN), evaluated on held-out links against a common-neighbour baseline."
 authors = ["Rui Wang <Wang.Rui@mbzuai.ac.ae>"]
 channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
