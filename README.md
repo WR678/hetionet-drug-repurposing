@@ -1,6 +1,6 @@
 # Hetionet drug repurposing
 
-Lightweight, CPU-only drug repurposing on the Hetionet knowledge graph with a small R-GCN and a simple baseline
+Prediction of drug–disease treatment relationships in the Hetionet biomedical knowledge graph using a relational graph convolutional network (R-GCN), evaluated on held-out links against a common-neighbour baseline.
 
 Author: Rui Wang ([ORCID 0009-0008-5273-0060](https://orcid.org/0009-0008-5273-0060))
 
