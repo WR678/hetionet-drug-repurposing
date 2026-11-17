@@ -19,13 +19,14 @@ papermill = ">=2.6"   # Quarto needs it for report parameters (-P)
 pytorch = ">=2.14.1,<3"
 pytorch_geometric = ">=2.8.1,<3"
 scikit-learn = ">=1.9.1,<2"
+snakemake = ">=9.24.0,<10"
+snakefmt = ">=2.1.0,<3"
 
 [tasks]
 check = { cmd = "python --version && quarto --version && python -c \"import torch, torch_geometric, sklearn; print('torch', torch.__version__, '| torch_geometric', torch_geometric.__version__, '| scikit-learn', sklearn.__version__)\"", description = "Check that the tools work" }
 download = { cmd = "python scripts/download_data.py", description = "Download Hetionet and verify its checksums" }
-explore = { cmd = "jupyter nbconvert --execute --to html --output-dir results/notebooks notebooks/explore-hetionet.ipynb", depends-on = ["download"], description = "Run the exploration notebook on a fresh kernel (HTML in results/notebooks/)" }
-report = { cmd = "quarto render reports/hetionet-report.qmd", depends-on = ["download"], description = "Render the Quarto report" }
+run-snakemake = { cmd = "snakemake --cores 2", depends-on = ["download"], description = "Run the analysis with Snakemake (notebook and report)" }
 # `reproduce` must rebuild every result from the raw data with one command.
-# For now it checks the tools, runs the notebook and renders the data report;
-# the model and the baseline follow.
-reproduce = [{ task = "check" }, { task = "explore" }, { task = "report" }]
+# For now the workflow runs the notebook and renders the data report; the
+# model and the baseline will be added to it as rules.
+reproduce = [{ task = "check" }, { task = "run-snakemake" }]

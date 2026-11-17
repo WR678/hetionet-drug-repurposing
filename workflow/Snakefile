@@ -1,0 +1,44 @@
+# Hetionet drug repurposing with Snakemake.
+#
+# Each step of the analysis is one rule. The raw data is downloaded and
+# verified by `pixi run download` before Snakemake starts, so the workflow
+# only reads it. Run from the project folder:  pixi run run-snakemake
+
+
+configfile: "config/config.yaml"
+
+
+HETIONET = [config["nodes"], config["edges"]]
+
+
+rule all:
+    default_target: True
+    input:
+        "results/notebooks/explore-hetionet.html",
+        "reports/hetionet-report.html",
+
+
+rule explore:
+    input:
+        HETIONET,
+        notebook="notebooks/explore-hetionet.ipynb",
+    output:
+        "results/notebooks/explore-hetionet.html",
+    log:
+        "results/logs/explore.log",
+    shell:
+        "jupyter nbconvert --execute --to html --output-dir results/notebooks {input.notebook} > {log} 2>&1"
+
+
+rule report:
+    input:
+        HETIONET,
+        "scripts/hetionet.py",
+        "reports/references.bib",
+        report="reports/hetionet-report.qmd",
+    output:
+        "reports/hetionet-report.html",
+    log:
+        "results/logs/report.log",
+    shell:
+        "quarto render {input.report} > {log} 2>&1"

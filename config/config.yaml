@@ -1,0 +1,4 @@
+# Settings for the Snakemake workflow (workflow/Snakefile).
+# Hetionet v1.0 files, downloaded and checked by `pixi run download`.
+nodes: data/raw/hetionet/hetionet-v1.0-nodes.tsv
+edges: data/raw/hetionet/hetionet-v1.0-edges.sif.gz
