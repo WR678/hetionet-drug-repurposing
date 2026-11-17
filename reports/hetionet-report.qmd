@@ -1,6 +1,6 @@
 ---
 title: "Drug repurposing on the Hetionet knowledge graph"
-subtitle: "The data: node types, edge types and known treatments"
+subtitle: "Link prediction of drug–disease treatments with a relational graph convolutional network"
 author: "Rui Wang"
 date: today
 format:
@@ -17,10 +17,11 @@ jupyter: python3
 
 ## Question
 
-Can a small relational graph neural network (R-GCN), trained on a laptop CPU
-in a few minutes, rank known drug–disease treatment links in Hetionet
-[@himmelstein2017] better than a simple common-neighbour baseline? This report
-describes the data. The model and the baseline will be added in later lessons.
+Can a relational graph convolutional network (R-GCN) [@schlichtkrull2018]
+rank held-out drug–disease treatment links in Hetionet [@himmelstein2017]
+better than a common-neighbour baseline? This report describes the data, the
+two models and their evaluation on held-out links over three random seeds.
+The whole analysis runs on a CPU in a few minutes.
 
 ## Data
 
@@ -74,8 +75,8 @@ of the `{python} f"{n_diseases}"` diseases. Most of these compounds
 (`{python} f"{(per_compound == 1).sum()}"`) treat a single disease, while the
 number of known treatments per disease ranges from 1 to
 `{python} f"{per_disease.max()}"` (@fig-ctd). A model can therefore score well
-by ranking the diseases that already have many treatments, which the
-evaluation will have to take into account.
+by ranking the diseases that already have many treatments, so the evaluation
+also uses negative pairs matched for this (@sec-split).
 
 ```{python}
 #| label: fig-ctd
@@ -90,6 +91,182 @@ right.set_xlabel("Known treatments per disease")
 right.set_ylabel("Diseases")
 fig.tight_layout()
 plt.show()
+```
+
+## Methods
+
+```{python}
+#| label: linkpred-setup
+from scripts.linkpred import load_config, load_npz
+
+config = load_config("config/config.yaml")
+graph = load_npz("data/processed/graph.npz")
+settings = config["model"]
+seeds = config["seeds"]
+n_target = len(graph["target"])
+n_test = round(config["test_fraction"] * n_target)
+n_val = round(config["val_fraction"] * n_target)
+n_train = n_target - n_test - n_val
+n_graph_nodes = len(graph["node_id"])
+n_msg = len(graph["msg_src"])
+n_relations = len(graph["relations"])
+seed_list = ", ".join(str(s) for s in seeds[:-1]) + f" and {seeds[-1]}"
+```
+
+### Graph
+
+The graph has the `{python} f"{n_graph_nodes:,}"` compounds, diseases and genes
+of Hetionet and `{python} f"{n_msg:,}"` edges of `{python} f"{n_relations}"`
+types: compound–gene (binds, upregulates, downregulates), disease–gene
+(associates, upregulates, downregulates), compound–compound similarity and
+disease–disease similarity (resembles). The training CtD pairs are added as one
+more edge type. Every edge type is used in both directions, and each direction
+is a relation of its own.
+
+### Split and negative pairs {#sec-split}
+
+For each of the seeds `{python} seed_list`, the `{python} f"{n_target}"` CtD
+pairs are split at random into `{python} f"{n_train}"` training,
+`{python} f"{n_val}"` validation and `{python} f"{n_test}"` test pairs. The
+validation and test pairs are not in the graph. Negative pairs are
+compound–disease pairs that Hetionet does not list as treatments (CtD) or as
+palliative uses (CpD). Each test pair has two negatives. The random negative is
+a compound and a disease drawn uniformly. The degree-matched negative takes its
+compound from the compounds of the test pairs and its disease from their
+diseases, so the negatives have the same numbers of known treatments as the
+positives, and a score that only reflects these numbers is expected to reach
+an AUROC close to 0.5.
+
+### Models
+
+The R-GCN [@schlichtkrull2018] learns a `{python} f"{settings['dim']}"`-dimensional
+embedding for every node and passes it through `{python} f"{settings['layers']}"`
+R-GCN layers with one weight matrix per relation. A DistMult decoder
+[@yang2015] scores a compound–disease pair from the two node vectors. The model
+is trained with binary cross-entropy against random negative pairs, using Adam
+(learning rate `{python} f"{settings['lr']}"`, weight decay
+`{python} f"{settings['weight_decay']}"`) and dropout of
+`{python} f"{settings['dropout']}"`. In each epoch
+`{python} f"{settings['supervision_fraction']:.0%}"` of the training CtD pairs
+are scored and the others pass messages, so the model never scores a pair that
+it also receives as an edge. Training stops after
+`{python} f"{settings['max_epochs']}"` epochs, or earlier when the average
+precision on the validation set has not improved for
+`{python} f"{settings['patience']}"` epochs, and the model from the best epoch
+is evaluated. The model is implemented with PyTorch Geometric [@fey2019] and
+always runs with `{python} f"{config['threads']}"` threads, because the number of
+threads can change the results of floating-point sums.
+
+The baseline scores a pair by the number of common neighbours of the compound
+and the disease in the same graph, without edge types: the genes linked to
+both, the compounds similar to the compound that treat the disease, and the
+diseases similar to the disease that the compound treats.
+
+Both models are evaluated on the test pairs of each seed by the area under the
+ROC curve (AUROC) and the average precision (AP), reported as mean ± standard
+deviation over the three seeds. With one negative per positive, a random
+ranking has an AUROC and an AP of about 0.5.
+
+## Results
+
+```{python}
+#| label: results-setup
+metrics = pd.read_csv("results/tables/metrics.tsv", sep="\t")
+candidates = pd.read_csv("results/tables/candidates.tsv", sep="\t")
+training = pd.concat(
+    [pd.read_csv(f"results/rgcn/seed{s}_training.tsv", sep="\t").assign(seed=s) for s in seeds]
+)
+
+
+def metric(model, negatives, name):
+    row = metrics[(metrics["model"] == model) & (metrics["negatives"] == negatives)].iloc[0]
+    return row[f"{name}_mean"], row[f"{name}_std"]
+
+
+def show(model, negatives, name="auroc"):
+    mean, sd = metric(model, negatives, name)
+    return f"{mean:.2f} ± {sd:.2f}"
+
+
+def compare(negatives):
+    higher = metric("R-GCN", negatives, "auroc")[0] > metric("Common neighbours", negatives, "auroc")[0]
+    return "above" if higher else "below"
+
+
+best = training[training["best"]]
+```
+
+With random negatives, the R-GCN reached an AUROC of
+`{python} show("R-GCN", "random")` and the common-neighbour baseline
+`{python} show("Common neighbours", "random")`, which places the R-GCN
+`{python} compare("random")` the baseline (@tbl-metrics). With degree-matched
+negatives, the AUROC of the R-GCN fell to `{python} show("R-GCN", "degree")`
+and that of the baseline to `{python} show("Common neighbours", "degree")`,
+which places the R-GCN `{python} compare("degree")` the baseline. The
+R-GCN's ranking of the test pairs against random negatives therefore depends
+largely on the numbers of known treatments of their compounds and diseases.
+Average precision follows the same pattern.
+
+```{python}
+#| label: tbl-metrics
+#| tbl-cap: "Test AUROC and average precision (mean ± SD over three seeds) of the R-GCN and the common-neighbour baseline, with random and degree-matched negatives."
+table = metrics.assign(
+    AUROC=[f"{m:.3f} ± {s:.3f}" for m, s in zip(metrics["auroc_mean"], metrics["auroc_std"])],
+    AP=[f"{m:.3f} ± {s:.3f}" for m, s in zip(metrics["ap_mean"], metrics["ap_std"])],
+    negatives=metrics["negatives"].map({"random": "random", "degree": "degree-matched"}),
+)
+(table[["model", "negatives", "AUROC", "AP"]]
+ .rename(columns={"model": "Model", "negatives": "Negatives"})
+ .style.hide(axis="index"))
+```
+
+Training stopped after `{python} f"{training.groupby('seed').size().min()}"` to
+`{python} f"{training.groupby('seed').size().max()}"` epochs, with the best
+validation AP at epochs
+`{python} ", ".join(str(e) for e in best["epoch"][:-1]) + f" and {best['epoch'].iloc[-1]}"`
+for the three seeds (@fig-training).
+
+```{python}
+#| label: fig-training
+#| fig-cap: "Validation average precision of the R-GCN in each epoch, for each seed. The dot marks the epoch whose model was evaluated."
+#| fig-alt: "Line chart of validation average precision against training epoch, one line per seed; each line has a dot at its best epoch."
+fig, ax = plt.subplots(figsize=(6, 3.2))
+for (seed, run), color in zip(training.groupby("seed"), ["#2a78d6", "#eb6834", "#3a9e5f"]):
+    ax.plot(run["epoch"], run["val_ap"], color=color, label=f"seed {seed}")
+    top = run[run["best"]]
+    ax.plot(top["epoch"], top["val_ap"], "o", color=color)
+ax.set_xlabel("Epoch")
+ax.set_ylabel("Validation AP")
+ax.legend(frameon=False)
+fig.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: candidates
+treatments = per_disease.rename(index=dict(zip(nodes["id"], nodes["name"])))
+candidate_treatments = treatments.reindex(candidates["disease"].unique()).fillna(0)
+```
+
+@tbl-candidates lists the `{python} f"{len(candidates)}"` compound–disease
+pairs with the highest mean R-GCN probability over the three seeds, among the
+pairs that Hetionet does not list as treatments or palliative uses. They involve
+`{python} f"{candidates['compound'].nunique()}"` compounds and
+`{python} f"{candidates['disease'].nunique()}"` diseases. These diseases have a
+median of `{python} f"{candidate_treatments.median():.0f}"` known treatments,
+against `{python} f"{per_disease.median():.0f}"` for all diseases with at least
+one, which agrees with the drop in performance against degree-matched
+negatives. The standard deviation of the probabilities across seeds ranges from
+`{python} f"{candidates['sd'].min():.2f}"` to
+`{python} f"{candidates['sd'].max():.2f}"`. The pairs are hypotheses from the
+model and have not been checked against the literature.
+
+```{python}
+#| label: tbl-candidates
+#| tbl-cap: "Compound–disease pairs with the highest R-GCN probability (mean and SD over three seeds) that are not known treatments or palliative uses in Hetionet."
+(candidates.rename(columns={"rank": "Rank", "compound": "Compound", "disease": "Disease",
+                             "probability": "Probability", "sd": "SD"})
+ .style.hide(axis="index").format({"Probability": "{:.3f}", "SD": "{:.3f}"}))
 ```
 
 ## Software

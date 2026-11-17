@@ -2,3 +2,33 @@
 # Hetionet v1.0 files, downloaded and checked by `pixi run download`.
 nodes: data/raw/hetionet/hetionet-v1.0-nodes.tsv
 edges: data/raw/hetionet/hetionet-v1.0-edges.sif.gz
+
+# Link prediction. The reasons for these choices are in docs/decisions.md.
+target: CtD                  # Compound–treats–Disease, the links to predict
+known_pairs: [CtD, CpD]      # never used as negatives (treats, palliates)
+message_edges:               # edge types the R-GCN and the baseline see
+  - CbG                      # Compound–binds–Gene
+  - CuG                      # Compound–upregulates–Gene
+  - CdG                      # Compound–downregulates–Gene
+  - DaG                      # Disease–associates–Gene
+  - DuG                      # Disease–upregulates–Gene
+  - DdG                      # Disease–downregulates–Gene
+  - CrC                      # Compound–resembles–Compound
+  - DrD                      # Disease–resembles–Disease
+seeds: [0, 1, 2]
+val_fraction: 0.1
+test_fraction: 0.1
+negatives_per_positive: 1    # in the validation and test sets
+threads: 2                   # PyTorch threads; fixed, because the thread count can change the results
+
+model:
+  dim: 64                    # node embedding and hidden size
+  layers: 2
+  dropout: 0.2
+  lr: 0.01
+  weight_decay: 0.0005
+  max_epochs: 200
+  patience: 20               # stop when validation AP has not improved for this many epochs
+  supervision_fraction: 0.3  # share of training CtD edges scored in each epoch; the rest pass messages
+
+candidates: 20               # top-ranked new compound–disease pairs in the report

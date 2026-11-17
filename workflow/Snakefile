@@ -3,12 +3,25 @@
 # Each step of the analysis is one rule. The raw data is downloaded and
 # verified by `pixi run download` before Snakemake starts, so the workflow
 # only reads it. Run from the project folder:  pixi run run-snakemake
+#
+# Link prediction: graph -> split (one per seed) -> baseline and train_rgcn
+# (one per seed) -> evaluate -> report. The settings are in config/config.yaml.
 
 
 configfile: "config/config.yaml"
 
 
 HETIONET = [config["nodes"], config["edges"]]
+SETTINGS = "config/config.yaml"
+SEEDS = config["seeds"]
+LINKPRED = "scripts/linkpred.py"
+TABLES = expand(
+    "results/tables/{name}.tsv", name=["metrics_by_seed", "metrics", "candidates"]
+)
+
+
+wildcard_constraints:
+    seed=r"\d+",
 
 
 rule all:
@@ -30,10 +43,94 @@ rule explore:
         "jupyter nbconvert --execute --to html --output-dir results/notebooks {input.notebook} > {log} 2>&1"
 
 
+rule graph:
+    input:
+        HETIONET,
+        "scripts/build_graph.py",
+        "scripts/hetionet.py",
+        LINKPRED,
+        settings=SETTINGS,
+    output:
+        "data/processed/graph.npz",
+    log:
+        "results/logs/graph.log",
+    shell:
+        "python -m scripts.build_graph {input.settings} {output} > {log} 2>&1"
+
+
+rule split:
+    input:
+        "scripts/make_split.py",
+        LINKPRED,
+        settings=SETTINGS,
+        graph=rules.graph.output,
+    output:
+        "data/processed/splits/seed{seed}.npz",
+    log:
+        "results/logs/split_seed{seed}.log",
+    shell:
+        "python -m scripts.make_split {input.settings} {input.graph} {wildcards.seed} {output} > {log} 2>&1"
+
+
+rule baseline:
+    input:
+        "scripts/baseline.py",
+        LINKPRED,
+        graph=rules.graph.output,
+        split=rules.split.output,
+    output:
+        "results/baseline/seed{seed}.tsv",
+    log:
+        "results/logs/baseline_seed{seed}.log",
+    shell:
+        "python -m scripts.baseline {input.graph} {input.split} {output} > {log} 2>&1"
+
+
+rule train_rgcn:
+    input:
+        "scripts/train_rgcn.py",
+        "scripts/baseline.py",
+        LINKPRED,
+        settings=SETTINGS,
+        graph=rules.graph.output,
+        split=rules.split.output,
+    output:
+        scores="results/rgcn/seed{seed}_test.tsv",
+        training="results/rgcn/seed{seed}_training.tsv",
+        pairs="results/rgcn/seed{seed}_all_pairs.npy",
+    log:
+        "results/logs/train_rgcn_seed{seed}.log",
+    threads: config["threads"]
+    shell:
+        "python -m scripts.train_rgcn {input.settings} {input.graph} {input.split} {wildcards.seed}"
+        " {output.scores} {output.training} {output.pairs} > {log} 2>&1"
+
+
+rule evaluate:
+    input:
+        "scripts/evaluate.py",
+        LINKPRED,
+        expand("results/baseline/seed{seed}.tsv", seed=SEEDS),
+        expand(rules.train_rgcn.output, seed=SEEDS),
+        settings=SETTINGS,
+        graph=rules.graph.output,
+    output:
+        TABLES,
+    log:
+        "results/logs/evaluate.log",
+    shell:
+        "python -m scripts.evaluate {input.settings} {input.graph} {output} > {log} 2>&1"
+
+
 rule report:
     input:
         HETIONET,
+        TABLES,
+        expand("results/rgcn/seed{seed}_training.tsv", seed=SEEDS),
+        SETTINGS,
+        rules.graph.output,
         "scripts/hetionet.py",
+        LINKPRED,
         "reports/references.bib",
         report="reports/hetionet-report.qmd",
     output:
