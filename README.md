@@ -44,8 +44,10 @@ builds of PyTorch, so no GPU is needed. The project has been run only on
 runner. At this stage `pixi run reproduce` downloads and verifies the data,
 checks that the tools load, runs the exploration notebook
 (`notebooks/explore-hetionet.ipynb`, saved as HTML in `results/notebooks/`) and
-renders the data report (`reports/hetionet-report.html`). The model and the
-baseline will be added to it as they are written.
+renders the data report (`reports/hetionet-report.html`). These steps are
+rules of a Snakemake workflow (`workflow/Snakefile`, settings in
+`config/config.yaml`), so a rerun repeats only the steps whose inputs
+changed. The model and the baseline will be added to it as they are written.
 
 Without Pixi, Conda or Mamba users can build the environment from
 `envs/environment.yml`, which carries the version ranges of `pixi.toml`, or
