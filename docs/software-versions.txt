@@ -1,0 +1,14 @@
+Name               Version  Build                             Size  Kind   Source
+ipykernel          7.4.0    pyh4a3486f_0                140.69 KiB  conda  https://conda.anaconda.org/conda-forge
+jupyterlab         4.6.4    pyhd8ed1ab_0                 12.75 MiB  conda  https://conda.anaconda.org/conda-forge
+matplotlib         3.11.2   py313h4488465_1              14.54 KiB  conda  https://conda.anaconda.org/conda-forge
+pandas             3.1.0    np2py313h4900a6c_0           16.28 MiB  conda  https://conda.anaconda.org/conda-forge
+papermill          2.7.0    pyhd8ed1ab_0                 69.24 KiB  conda  https://conda.anaconda.org/conda-forge
+python             3.13.18  hf47f18c_100_cp313           23.18 MiB  conda  https://conda.anaconda.org/conda-forge
+pytorch            2.14.1   cpu_mkl_py313_h0463c13_102   27.91 MiB  conda  https://conda.anaconda.org/conda-forge
+pytorch_geometric  2.8.1    pyhc455866_0                714.73 KiB  conda  https://conda.anaconda.org/conda-forge
+pyyaml             6.0.3    py313h45b8176_3             221.32 KiB  conda  https://conda.anaconda.org/conda-forge
+quarto             1.9.38   hd55b112_0                   25.00 MiB  conda  https://conda.anaconda.org/conda-forge
+scikit-learn       1.9.1    np2py313h4900a6c_1            9.68 MiB  conda  https://conda.anaconda.org/conda-forge
+snakefmt           2.1.0    pyhdfd78af_0                 49.94 KiB  conda  https://conda.anaconda.org/bioconda
+snakemake          9.24.0   hdfd78af_0                   11.06 KiB  conda  https://conda.anaconda.org/bioconda
