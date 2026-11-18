@@ -41,13 +41,17 @@ Action (`.github/workflows/reproduce.yml`) checks that on every push.
 silicon and Intel (`osx-arm64`, `osx-64`) and Windows (`win-64`), with the CPU
 builds of PyTorch, so no GPU is needed. The project has been run only on
 `linux-64`: Ubuntu 26.04 under WSL2 and the GitHub Actions `ubuntu-latest`
-runner. At this stage `pixi run reproduce` downloads and verifies the data,
-checks that the tools load, runs the exploration notebook
-(`notebooks/explore-hetionet.ipynb`, saved as HTML in `results/notebooks/`) and
-renders the data report (`reports/hetionet-report.html`). These steps are
-rules of a Snakemake workflow (`workflow/Snakefile`, settings in
-`config/config.yaml`), so a rerun repeats only the steps whose inputs
-changed. The model and the baseline will be added to it as they are written.
+runner. `pixi run reproduce` downloads and verifies the data, checks that the
+tools load, runs the exploration notebook (`notebooks/explore-hetionet.ipynb`,
+saved as HTML in `results/notebooks/`), builds the graph, splits the known
+treatments for three random seeds, trains the R-GCN and scores the
+common-neighbour baseline for each seed, evaluates both models
+(`results/tables/`) and renders the report (`reports/hetionet-report.html`).
+It takes about 75 seconds on a laptop. These steps are rules of a Snakemake
+workflow (`workflow/Snakefile`, settings in `config/config.yaml`), so a rerun
+repeats only the steps whose inputs changed. PyTorch always runs with two
+threads, and two runs give identical results. The reasons for the analysis
+settings are in `docs/decisions.md`.
 
 Without Pixi, Conda or Mamba users can build the environment from
 `envs/environment.yml`, which carries the version ranges of `pixi.toml`, or

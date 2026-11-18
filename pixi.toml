@@ -21,12 +21,11 @@ pytorch_geometric = ">=2.8.1,<3"
 scikit-learn = ">=1.9.1,<2"
 snakemake = ">=9.24.0,<10"
 snakefmt = ">=2.1.0,<3"
+pyyaml = ">=6.0.3,<7"
 
 [tasks]
 check = { cmd = "python --version && quarto --version && python -c \"import torch, torch_geometric, sklearn; print('torch', torch.__version__, '| torch_geometric', torch_geometric.__version__, '| scikit-learn', sklearn.__version__)\"", description = "Check that the tools work" }
 download = { cmd = "python scripts/download_data.py", description = "Download Hetionet and verify its checksums" }
-run-snakemake = { cmd = "snakemake --cores 2", depends-on = ["download"], description = "Run the analysis with Snakemake (notebook and report)" }
+run-snakemake = { cmd = "snakemake --cores 2", depends-on = ["download"], description = "Run the analysis with Snakemake (notebook, models, evaluation and report)" }
 # `reproduce` must rebuild every result from the raw data with one command.
-# For now the workflow runs the notebook and renders the data report; the
-# model and the baseline will be added to it as rules.
 reproduce = [{ task = "check" }, { task = "run-snakemake" }]
