@@ -25,6 +25,9 @@ jobs:
           pixi-version: v0.83.0
           locked: true   # fail if pixi.lock does not match pixi.toml
 
+      - name: Citation file is valid
+        run: pixi exec cffconvert --validate -i CITATION.cff
+
       - name: Rebuild every result from raw data
         run: pixi run reproduce
 

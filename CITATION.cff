@@ -11,4 +11,33 @@ authors:
 repository-code: "https://github.com/WR678/hetionet-drug-repurposing"
 license: MIT
 version: 0.1.0
-date-released: "2026-10-26"
+date-released: "2026-11-18"
+keywords:
+  - reproducibility
+  - drug repurposing
+  - knowledge graph
+  - link prediction
+  - graph neural network
+references:
+  - type: article
+    title: "Systematic integration of biomedical knowledge prioritizes drugs for repurposing"
+    authors:
+      - family-names: "Himmelstein"
+        given-names: "Daniel Scott"
+      - name: "et al."
+    journal: "eLife"
+    volume: 6
+    start: "e26726"
+    year: 2017
+    doi: "10.7554/eLife.26726"
+  - type: conference-paper
+    title: "Modeling Relational Data with Graph Convolutional Networks"
+    authors:
+      - family-names: "Schlichtkrull"
+        given-names: "Michael"
+      - name: "et al."
+    collection-title: "The Semantic Web (ESWC 2018)"
+    start: 593
+    end: 607
+    year: 2018
+    doi: "10.1007/978-3-319-93417-4_38"
